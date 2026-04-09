@@ -215,6 +215,37 @@ window.EditorPage = (function () {
         onDragEnd: function () {
           this.dragSrcIndex = null;
         },
+        exportSlides: function () {
+          const data = this.slides.map(function (s) {
+            return { type: s.type, content: s.content };
+          });
+          const json = JSON.stringify(data, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = (this.presentation.title || 'slides') + '.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Slides exported', 'success');
+        },
+        downloadTemplate: function () {
+          const template = [
+            { type: 'cover', content: { title: 'Presentation Title', subtitle: 'Subtitle or tagline' } },
+            { type: 'text-bullets', content: { title: 'Section Title', bullets: ['First point', 'Second point', 'Third point'] } },
+            { type: 'image-text', content: { title: 'Image & Text', body: 'Supporting copy goes here.', imageUrl: 'https://placekitten.com/800/600', imagePosition: 'left' } },
+            { type: 'fullscreen-image', content: { imageUrl: 'https://placekitten.com/1280/720', caption: 'Optional caption' } },
+          ];
+          const json = JSON.stringify(template, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'slide-template.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('Template downloaded', 'info');
+        },
         updatePreviewScale: function () {
           const frame = this.$refs.previewFrame;
           if (frame) {
@@ -379,6 +410,18 @@ window.EditorPage = (function () {
                       {{ importing ? 'Importing…' : 'Import slides' }}
                     </button>
                     <button class="btn-ghost" v-if="importJson" @click="clearImport">Clear</button>
+                  </div>
+                </div>
+
+                <div class="editor-section">
+                  <p class="editor-section-label">Export</p>
+                  <div class="export-actions">
+                    <button class="btn-ghost export-btn" :disabled="slides.length === 0" @click="exportSlides">
+                      &#8659; Export slides JSON
+                    </button>
+                    <button class="btn-ghost export-btn" @click="downloadTemplate">
+                      &#8659; Download template
+                    </button>
                   </div>
                 </div>
 
