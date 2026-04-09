@@ -21,6 +21,7 @@ window.EditorPage = (function () {
         selectedSlideId: null,
         confirmDeleteSlideId: null,
         dragSrcIndex: null,
+        previewScale: 0.5,
       },
       computed: {
         importValid: function () {
@@ -29,6 +30,22 @@ window.EditorPage = (function () {
         selectedSlide: function () {
           const self = this;
           return self.slides.find(function (s) { return s.id === self.selectedSlideId; }) || null;
+        },
+        renderedSlide: function () {
+          if (!this.selectedSlide || !this.presentation) return '';
+          return Renderer.renderSlide(this.selectedSlide, this.presentation.config);
+        },
+      },
+      watch: {
+        loading: function (val) {
+          if (!val) {
+            const self = this;
+            self.$nextTick(self.updatePreviewScale);
+          }
+        },
+        slides: function () {
+          const self = this;
+          self.$nextTick(self.updatePreviewScale);
         },
       },
       methods: {
@@ -178,6 +195,17 @@ window.EditorPage = (function () {
         onDragEnd: function () {
           this.dragSrcIndex = null;
         },
+        updatePreviewScale: function () {
+          const frame = this.$refs.previewFrame;
+          if (frame) {
+            this.previewScale = frame.offsetWidth / 1280;
+          }
+        },
+      },
+      mounted: function () {
+        const self = this;
+        self._resizeHandler = function () { self.updatePreviewScale(); };
+        window.addEventListener('resize', self._resizeHandler);
       },
       created: function () {
         const self = this;
@@ -204,6 +232,7 @@ window.EditorPage = (function () {
       },
       beforeDestroy: function () {
         if (this.saveTimer) clearTimeout(this.saveTimer);
+        if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
       },
       template: `
         <div class="editor" v-if="!loading">
@@ -310,31 +339,45 @@ window.EditorPage = (function () {
                   <p>No slides yet.</p>
                   <p class="editor-placeholder-text">Import a JSON array using the panel on the left.</p>
                 </div>
-                <div v-else class="slide-list">
-                  <div
-                    v-for="(slide, index) in slides"
-                    :key="slide.id"
-                    :class="['slide-row', selectedSlideId === slide.id ? 'slide-row--selected' : '', dragSrcIndex === index ? 'slide-row--dragging' : '']"
-                    draggable="true"
-                    @click="selectSlide(slide.id)"
-                    @dragstart="onDragStart($event, index)"
-                    @dragover="onDragOver($event)"
-                    @drop="onDrop($event, index)"
-                    @dragend="onDragEnd"
-                  >
-                    <span class="slide-row-handle">&#8942;&#8942;</span>
-                    <span class="slide-row-index">{{ index + 1 }}</span>
-                    <span class="slide-row-type">{{ typeLabel(slide.type) }}</span>
-                    <span class="slide-row-title">{{ slide.content.title || slide.content.imageUrl || '—' }}</span>
-                    <div class="slide-row-actions" @click.stop>
-                      <template v-if="confirmDeleteSlideId === slide.id">
-                        <button class="btn-danger" @click="confirmDeleteSlide(slide.id)">Delete</button>
-                        <button class="btn-ghost" @click="cancelDeleteSlide">Cancel</button>
-                      </template>
-                      <button v-else class="btn-ghost slide-row-delete" @click="askDeleteSlide(slide.id)">&#x2715;</button>
+                <template v-else>
+                  <div class="slide-thumbs">
+                    <div
+                      v-for="(slide, index) in slides"
+                      :key="slide.id"
+                      :class="['slide-row', selectedSlideId === slide.id ? 'slide-row--selected' : '', dragSrcIndex === index ? 'slide-row--dragging' : '']"
+                      draggable="true"
+                      @click="selectSlide(slide.id)"
+                      @dragstart="onDragStart($event, index)"
+                      @dragover="onDragOver($event)"
+                      @drop="onDrop($event, index)"
+                      @dragend="onDragEnd"
+                    >
+                      <span class="slide-row-handle">&#8942;&#8942;</span>
+                      <span class="slide-row-index">{{ index + 1 }}</span>
+                      <span class="slide-row-type">{{ typeLabel(slide.type) }}</span>
+                      <span class="slide-row-title">{{ slide.content.title || slide.content.imageUrl || '—' }}</span>
+                      <div class="slide-row-actions" @click.stop>
+                        <template v-if="confirmDeleteSlideId === slide.id">
+                          <button class="btn-danger" @click="confirmDeleteSlide(slide.id)">Delete</button>
+                          <button class="btn-ghost" @click="cancelDeleteSlide">Cancel</button>
+                        </template>
+                        <button v-else class="btn-ghost slide-row-delete" @click="askDeleteSlide(slide.id)">&#x2715;</button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                  <div class="slide-preview-panel">
+                    <div class="slide-preview-frame" ref="previewFrame">
+                      <div v-if="selectedSlide"
+                           class="slide-preview-scaler"
+                           :style="{ transform: 'scale(' + previewScale + ')', width: '1280px', height: '720px' }"
+                           v-html="renderedSlide">
+                      </div>
+                      <div v-else class="slide-preview-empty">
+                        <p>Select a slide to preview</p>
+                      </div>
+                    </div>
+                  </div>
+                </template>
               </main>
             </div>
           </template>
