@@ -801,3 +801,106 @@ a {
   border-radius: var(--radius-sm);
   backdrop-filter: blur(4px);
 }
+
+/* Player */
+.player {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.player-loading,
+.player-not-found {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+}
+
+.player-stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-slide-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.player-slide-inner .slide {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+}
+
+.player-controls {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: rgba(0, 0, 0, 0.6);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+  transition: opacity var(--transition-base);
+  z-index: 10;
+}
+
+.player-controls--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.player-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.player-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.player-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.player-counter {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 60px;
+  text-align: center;
+}
+
+.player-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.player-progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
