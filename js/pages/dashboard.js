@@ -49,7 +49,8 @@ window.DashboardPage = (function () {
           DB.put(DB.STORES.PRESENTATIONS, record).then(function (id) {
             Router.navigate('#editor/' + id);
           }).catch(function (err) {
-            console.error('Failed to create presentation:', err);
+            showToast('Failed to create presentation', 'error');
+            console.error(err);
           });
         },
         askDelete: function (id) {
@@ -73,7 +74,8 @@ window.DashboardPage = (function () {
             self.confirmDeleteId = null;
           }).catch(function (err) {
             self.confirmDeleteId = null;
-            console.error('Failed to delete presentation:', err);
+            showToast('Failed to delete presentation', 'error');
+            console.error(err);
           });
         },
       },
@@ -84,7 +86,8 @@ window.DashboardPage = (function () {
           self.loading = false;
         }).catch(function (err) {
           self.loading = false;
-          console.error('Failed to load presentations:', err);
+          showToast('Failed to load presentations', 'error');
+          console.error(err);
         });
       },
       template: `
