@@ -13,6 +13,10 @@ window.EditorPage = (function () {
         saveStatus: '',
         saveTimer: null,
         bgTab: 'color',
+        importJson: '',
+        importStatus: null,
+        importErrors: [],
+        importing: false,
       },
       computed: {
         bgStyle: function () {
@@ -21,6 +25,9 @@ window.EditorPage = (function () {
           if (bg.type === 'color') return { background: bg.value };
           if (bg.type === 'gradient') return { background: bg.value };
           return {};
+        },
+        importValid: function () {
+          return this.importStatus === 'valid';
         },
       },
       methods: {
@@ -56,6 +63,61 @@ window.EditorPage = (function () {
         onBgColorChange: function (e) {
           this.presentation.config.background = { type: 'color', value: e.target.value };
           this.save();
+        },
+        onImportInput: function () {
+          const self = this;
+          self.importStatus = null;
+          self.importErrors = [];
+          if (!self.importJson.trim()) return;
+          let parsed;
+          try {
+            parsed = JSON.parse(self.importJson);
+          } catch (e) {
+            self.importStatus = 'invalid';
+            self.importErrors = [{ index: null, field: 'JSON', message: 'Invalid JSON: ' + e.message }];
+            return;
+          }
+          const result = Validator.validateSlides(parsed);
+          if (result.valid) {
+            self.importStatus = 'valid';
+            self.importErrors = [];
+          } else {
+            self.importStatus = 'invalid';
+            self.importErrors = result.errors;
+          }
+        },
+        clearImport: function () {
+          this.importJson = '';
+          this.importStatus = null;
+          this.importErrors = [];
+        },
+        doImport: function () {
+          const self = this;
+          if (!self.importValid) return;
+          self.importing = true;
+          const parsed = JSON.parse(self.importJson);
+          const presentationId = self.presentation.id;
+
+          DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', presentationId).then(function (existing) {
+            return Promise.all(existing.map(function (s) {
+              return DB.delete(DB.STORES.SLIDES, s.id);
+            }));
+          }).then(function () {
+            return Promise.all(parsed.map(function (slide, index) {
+              return DB.put(DB.STORES.SLIDES, {
+                presentationId: presentationId,
+                order: index,
+                type: slide.type,
+                content: slide.content,
+              });
+            }));
+          }).then(function () {
+            self.importing = false;
+            self.clearImport();
+          }).catch(function (err) {
+            self.importing = false;
+            console.error('Import failed:', err);
+          });
         },
       },
       created: function () {
@@ -123,7 +185,7 @@ window.EditorPage = (function () {
                       <span class="form-color-label">{{ presentation.config.background.value }}</span>
                     </div>
                     <div v-if="bgTab === 'gradient'" class="form-color-row">
-                      <span class="editor-placeholder-text">Gradient builder coming in a later story</span>
+                      <span class="editor-placeholder-text">Gradient builder coming soon</span>
                     </div>
                   </div>
                   <div class="form-field">
@@ -152,7 +214,28 @@ window.EditorPage = (function () {
 
                 <div class="editor-section">
                   <p class="editor-section-label">Import JSON</p>
-                  <p class="editor-placeholder-text">JSON importer coming soon</p>
+                  <textarea
+                    class="form-textarea"
+                    placeholder="Paste slide JSON array here…"
+                    v-model="importJson"
+                    @input="onImportInput"
+                    rows="8"
+                  ></textarea>
+                  <div v-if="importStatus === 'valid'" class="import-status import-status--valid">
+                    &#10003; Valid — {{ JSON.parse(importJson).length }} slide(s) ready
+                  </div>
+                  <div v-if="importErrors.length > 0" class="import-error-list">
+                    <div v-for="(e, i) in importErrors" :key="i" class="import-error-item">
+                      <span class="import-error-loc">{{ e.index !== null ? 'Slide ' + e.index + ' · ' : '' }}{{ e.field }}</span>
+                      <span class="import-error-msg">{{ e.message }}</span>
+                    </div>
+                  </div>
+                  <div class="import-actions">
+                    <button class="btn-primary" :disabled="!importValid || importing" @click="doImport">
+                      {{ importing ? 'Importing…' : 'Import slides' }}
+                    </button>
+                    <button class="btn-ghost" v-if="importJson" @click="clearImport">Clear</button>
+                  </div>
                 </div>
 
               </aside>
