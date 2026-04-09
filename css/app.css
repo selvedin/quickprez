@@ -441,6 +441,103 @@ a {
   margin-top: var(--space-3);
 }
 
+/* Slide list */
+.slide-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 100%;
+  color: var(--color-text-secondary);
+}
+
+.slide-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  width: 100%;
+}
+
+.slide-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  user-select: none;
+}
+
+.slide-row:hover {
+  border-color: var(--color-accent);
+}
+
+.slide-row--selected {
+  border-color: var(--color-accent);
+  background-color: var(--color-surface-raised);
+}
+
+.slide-row--dragging {
+  opacity: 0.4;
+}
+
+.slide-row-handle {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: grab;
+  letter-spacing: -2px;
+}
+
+.slide-row-index {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  min-width: 20px;
+  text-align: right;
+}
+
+.slide-row-type {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background-color: rgba(108, 99, 255, 0.12);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.slide-row-title {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slide-row-actions {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.slide-row-delete {
+  font-size: 0.75rem;
+  padding: var(--space-1) var(--space-2);
+  opacity: 0.5;
+}
+
+.slide-row-delete:hover {
+  opacity: 1;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
 /* Form fields */
 .form-field {
   display: flex;

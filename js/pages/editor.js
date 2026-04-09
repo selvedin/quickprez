@@ -17,17 +17,18 @@ window.EditorPage = (function () {
         importStatus: null,
         importErrors: [],
         importing: false,
+        slides: [],
+        selectedSlideId: null,
+        confirmDeleteSlideId: null,
+        dragSrcIndex: null,
       },
       computed: {
-        bgStyle: function () {
-          if (!this.presentation) return {};
-          const bg = this.presentation.config.background;
-          if (bg.type === 'color') return { background: bg.value };
-          if (bg.type === 'gradient') return { background: bg.value };
-          return {};
-        },
         importValid: function () {
           return this.importStatus === 'valid';
+        },
+        selectedSlide: function () {
+          const self = this;
+          return self.slides.find(function (s) { return s.id === self.selectedSlideId; }) || null;
         },
       },
       methods: {
@@ -44,17 +45,13 @@ window.EditorPage = (function () {
           DB.put(DB.STORES.PRESENTATIONS, self.presentation).then(function () {
             self.saveStatus = 'Saved';
             if (self.saveTimer) clearTimeout(self.saveTimer);
-            self.saveTimer = setTimeout(function () {
-              self.saveStatus = '';
-            }, 1500);
+            self.saveTimer = setTimeout(function () { self.saveStatus = ''; }, 1500);
           }).catch(function (err) {
             self.saveStatus = 'Error saving';
             console.error('Auto-save failed:', err);
           });
         },
-        onFieldChange: function () {
-          this.save();
-        },
+        onFieldChange: function () { this.save(); },
         setBgTab: function (tab) {
           this.bgTab = tab;
           this.presentation.config.background = { type: tab, value: tab === 'color' ? '#1a1a2e' : '' };
@@ -63,6 +60,34 @@ window.EditorPage = (function () {
         onBgColorChange: function (e) {
           this.presentation.config.background = { type: 'color', value: e.target.value };
           this.save();
+        },
+        loadSlides: function () {
+          const self = this;
+          DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', self.presentation.id).then(function (rows) {
+            self.slides = rows.slice().sort(function (a, b) { return a.order - b.order; });
+          }).catch(function (err) {
+            console.error('Failed to load slides:', err);
+          });
+        },
+        selectSlide: function (id) {
+          this.selectedSlideId = id;
+          this.confirmDeleteSlideId = null;
+        },
+        askDeleteSlide: function (id) {
+          this.confirmDeleteSlideId = id;
+        },
+        cancelDeleteSlide: function () {
+          this.confirmDeleteSlideId = null;
+        },
+        confirmDeleteSlide: function (id) {
+          const self = this;
+          DB.delete(DB.STORES.SLIDES, id).then(function () {
+            self.slides = self.slides.filter(function (s) { return s.id !== id; });
+            if (self.selectedSlideId === id) self.selectedSlideId = null;
+            self.confirmDeleteSlideId = null;
+          }).catch(function (err) {
+            console.error('Failed to delete slide:', err);
+          });
         },
         onImportInput: function () {
           const self = this;
@@ -97,11 +122,8 @@ window.EditorPage = (function () {
           self.importing = true;
           const parsed = JSON.parse(self.importJson);
           const presentationId = self.presentation.id;
-
           DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', presentationId).then(function (existing) {
-            return Promise.all(existing.map(function (s) {
-              return DB.delete(DB.STORES.SLIDES, s.id);
-            }));
+            return Promise.all(existing.map(function (s) { return DB.delete(DB.STORES.SLIDES, s.id); }));
           }).then(function () {
             return Promise.all(parsed.map(function (slide, index) {
               return DB.put(DB.STORES.SLIDES, {
@@ -114,10 +136,47 @@ window.EditorPage = (function () {
           }).then(function () {
             self.importing = false;
             self.clearImport();
+            self.loadSlides();
           }).catch(function (err) {
             self.importing = false;
             console.error('Import failed:', err);
           });
+        },
+        typeLabel: function (type) {
+          const labels = {
+            'cover': 'Cover',
+            'text-bullets': 'Bullets',
+            'image-text': 'Image + Text',
+            'fullscreen-image': 'Full Image',
+          };
+          return labels[type] || type;
+        },
+        onDragStart: function (e, index) {
+          this.dragSrcIndex = index;
+          e.dataTransfer.effectAllowed = 'move';
+        },
+        onDragOver: function (e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        },
+        onDrop: function (e, targetIndex) {
+          e.preventDefault();
+          const self = this;
+          if (self.dragSrcIndex === null || self.dragSrcIndex === targetIndex) return;
+          const reordered = self.slides.slice();
+          const moved = reordered.splice(self.dragSrcIndex, 1)[0];
+          reordered.splice(targetIndex, 0, moved);
+          reordered.forEach(function (s, i) { s.order = i; });
+          self.slides = reordered;
+          self.dragSrcIndex = null;
+          Promise.all(reordered.map(function (s) {
+            return DB.put(DB.STORES.SLIDES, s);
+          })).catch(function (err) {
+            console.error('Failed to save slide order:', err);
+          });
+        },
+        onDragEnd: function () {
+          this.dragSrcIndex = null;
         },
       },
       created: function () {
@@ -126,15 +185,21 @@ window.EditorPage = (function () {
         DB.get(DB.STORES.PRESENTATIONS, id).then(function (record) {
           if (!record) {
             self.notFound = true;
-          } else {
-            self.presentation = record;
-            self.bgTab = record.config.background ? record.config.background.type : 'color';
+            self.loading = false;
+            return;
+          }
+          self.presentation = record;
+          self.bgTab = record.config.background ? record.config.background.type : 'color';
+          return DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', id);
+        }).then(function (rows) {
+          if (rows) {
+            self.slides = rows.slice().sort(function (a, b) { return a.order - b.order; });
           }
           self.loading = false;
         }).catch(function (err) {
           self.loading = false;
           self.notFound = true;
-          console.error('Failed to load presentation:', err);
+          console.error('Failed to load editor:', err);
         });
       },
       beforeDestroy: function () {
@@ -184,7 +249,7 @@ window.EditorPage = (function () {
                       <input type="color" class="form-color" :value="presentation.config.background.value" @input="onBgColorChange" />
                       <span class="form-color-label">{{ presentation.config.background.value }}</span>
                     </div>
-                    <div v-if="bgTab === 'gradient'" class="form-color-row">
+                    <div v-if="bgTab === 'gradient'">
                       <span class="editor-placeholder-text">Gradient builder coming soon</span>
                     </div>
                   </div>
@@ -239,8 +304,37 @@ window.EditorPage = (function () {
                 </div>
 
               </aside>
+
               <main class="editor-workspace">
-                <p class="editor-placeholder-text">Slides will appear here</p>
+                <div v-if="slides.length === 0" class="slide-list-empty">
+                  <p>No slides yet.</p>
+                  <p class="editor-placeholder-text">Import a JSON array using the panel on the left.</p>
+                </div>
+                <div v-else class="slide-list">
+                  <div
+                    v-for="(slide, index) in slides"
+                    :key="slide.id"
+                    :class="['slide-row', selectedSlideId === slide.id ? 'slide-row--selected' : '', dragSrcIndex === index ? 'slide-row--dragging' : '']"
+                    draggable="true"
+                    @click="selectSlide(slide.id)"
+                    @dragstart="onDragStart($event, index)"
+                    @dragover="onDragOver($event)"
+                    @drop="onDrop($event, index)"
+                    @dragend="onDragEnd"
+                  >
+                    <span class="slide-row-handle">&#8942;&#8942;</span>
+                    <span class="slide-row-index">{{ index + 1 }}</span>
+                    <span class="slide-row-type">{{ typeLabel(slide.type) }}</span>
+                    <span class="slide-row-title">{{ slide.content.title || slide.content.imageUrl || '—' }}</span>
+                    <div class="slide-row-actions" @click.stop>
+                      <template v-if="confirmDeleteSlideId === slide.id">
+                        <button class="btn-danger" @click="confirmDeleteSlide(slide.id)">Delete</button>
+                        <button class="btn-ghost" @click="cancelDeleteSlide">Cancel</button>
+                      </template>
+                      <button v-else class="btn-ghost slide-row-delete" @click="askDeleteSlide(slide.id)">&#x2715;</button>
+                    </div>
+                  </div>
+                </div>
               </main>
             </div>
           </template>
