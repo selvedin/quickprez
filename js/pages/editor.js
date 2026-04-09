@@ -13,6 +13,9 @@ window.EditorPage = (function () {
         saveStatus: '',
         saveTimer: null,
         bgTab: 'color',
+        gradientColor1: '#1a1a2e',
+        gradientColor2: '#6c63ff',
+        gradientDirection: '135deg',
         importJson: '',
         importStatus: null,
         importErrors: [],
@@ -72,11 +75,22 @@ window.EditorPage = (function () {
         onFieldChange: function () { this.save(); },
         setBgTab: function (tab) {
           this.bgTab = tab;
-          this.presentation.config.background = { type: tab, value: tab === 'color' ? '#1a1a2e' : '' };
+          if (tab === 'color') {
+            this.presentation.config.background = { type: 'color', value: '#1a1a2e' };
+          } else {
+            this.presentation.config.background = { type: 'gradient', value: this.buildGradientValue() };
+          }
           this.save();
         },
         onBgColorChange: function (e) {
           this.presentation.config.background = { type: 'color', value: e.target.value };
+          this.save();
+        },
+        buildGradientValue: function () {
+          return 'linear-gradient(' + this.gradientDirection + ', ' + this.gradientColor1 + ', ' + this.gradientColor2 + ')';
+        },
+        onGradientChange: function () {
+          this.presentation.config.background = { type: 'gradient', value: this.buildGradientValue() };
           this.save();
         },
         loadSlides: function () {
@@ -223,7 +237,16 @@ window.EditorPage = (function () {
             return;
           }
           self.presentation = record;
-          self.bgTab = record.config.background ? record.config.background.type : 'color';
+          const bg = record.config.background;
+          self.bgTab = bg ? bg.type : 'color';
+          if (bg && bg.type === 'gradient' && bg.value) {
+            const match = bg.value.match(/linear-gradient\(([^,]+),\s*(#[0-9a-fA-F]{3,8}),\s*(#[0-9a-fA-F]{3,8})\)/);
+            if (match) {
+              self.gradientDirection = match[1].trim();
+              self.gradientColor1 = match[2].trim();
+              self.gradientColor2 = match[3].trim();
+            }
+          }
           return DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', id);
         }).then(function (rows) {
           if (rows) {
@@ -285,8 +308,28 @@ window.EditorPage = (function () {
                       <input type="color" class="form-color" :value="presentation.config.background.value" @input="onBgColorChange" />
                       <span class="form-color-label">{{ presentation.config.background.value }}</span>
                     </div>
-                    <div v-if="bgTab === 'gradient'">
-                      <span class="editor-placeholder-text">Gradient builder coming soon</span>
+                    <div v-if="bgTab === 'gradient'" class="gradient-builder">
+                      <div class="gradient-preview" :style="{ background: buildGradientValue() }"></div>
+                      <div class="gradient-colors">
+                        <div class="form-color-row">
+                          <input type="color" class="form-color" v-model="gradientColor1" @input="onGradientChange" />
+                          <span class="form-color-label">{{ gradientColor1 }}</span>
+                        </div>
+                        <div class="form-color-row">
+                          <input type="color" class="form-color" v-model="gradientColor2" @input="onGradientChange" />
+                          <span class="form-color-label">{{ gradientColor2 }}</span>
+                        </div>
+                      </div>
+                      <div class="form-field" style="margin-top:0">
+                        <label class="form-label">Direction</label>
+                        <select class="form-select" v-model="gradientDirection" @change="onGradientChange">
+                          <option value="to right">Left → Right</option>
+                          <option value="to bottom">Top → Bottom</option>
+                          <option value="135deg">Diagonal ↘</option>
+                          <option value="45deg">Diagonal ↗</option>
+                          <option value="to bottom right">Top-left → Bottom-right</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                   <div class="form-field">
