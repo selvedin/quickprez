@@ -65,7 +65,8 @@ window.EditorPage = (function () {
             self.saveTimer = setTimeout(function () { self.saveStatus = ''; }, 1500);
           }).catch(function (err) {
             self.saveStatus = 'Error saving';
-            console.error('Auto-save failed:', err);
+            showToast('Auto-save failed', 'error');
+            console.error(err);
           });
         },
         onFieldChange: function () { this.save(); },
@@ -83,7 +84,8 @@ window.EditorPage = (function () {
           DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', self.presentation.id).then(function (rows) {
             self.slides = rows.slice().sort(function (a, b) { return a.order - b.order; });
           }).catch(function (err) {
-            console.error('Failed to load slides:', err);
+            showToast('Failed to load slides', 'error');
+            console.error(err);
           });
         },
         selectSlide: function (id) {
@@ -103,7 +105,8 @@ window.EditorPage = (function () {
             if (self.selectedSlideId === id) self.selectedSlideId = null;
             self.confirmDeleteSlideId = null;
           }).catch(function (err) {
-            console.error('Failed to delete slide:', err);
+            showToast('Failed to delete slide', 'error');
+            console.error(err);
           });
         },
         onImportInput: function () {
@@ -154,9 +157,11 @@ window.EditorPage = (function () {
             self.importing = false;
             self.clearImport();
             self.loadSlides();
+            showToast('Slides imported successfully', 'success');
           }).catch(function (err) {
             self.importing = false;
-            console.error('Import failed:', err);
+            showToast('Import failed', 'error');
+            console.error(err);
           });
         },
         typeLabel: function (type) {
@@ -189,7 +194,8 @@ window.EditorPage = (function () {
           Promise.all(reordered.map(function (s) {
             return DB.put(DB.STORES.SLIDES, s);
           })).catch(function (err) {
-            console.error('Failed to save slide order:', err);
+            showToast('Failed to save slide order', 'error');
+            console.error(err);
           });
         },
         onDragEnd: function () {
@@ -227,7 +233,8 @@ window.EditorPage = (function () {
         }).catch(function (err) {
           self.loading = false;
           self.notFound = true;
-          console.error('Failed to load editor:', err);
+          showToast('Failed to load presentation', 'error');
+          console.error(err);
         });
       },
       beforeDestroy: function () {
