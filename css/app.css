@@ -101,3 +101,21 @@ a {
   color: var(--color-accent);
   text-decoration: none;
 }
+
+.page-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  color: var(--color-text-secondary);
+}
+
+.not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--color-danger);
+}
