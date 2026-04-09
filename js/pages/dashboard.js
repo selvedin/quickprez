@@ -9,6 +9,7 @@ window.DashboardPage = (function () {
       data: {
         presentations: [],
         loading: true,
+        confirmDeleteId: null,
       },
       computed: {
         sorted: function () {
@@ -51,6 +52,30 @@ window.DashboardPage = (function () {
             console.error('Failed to create presentation:', err);
           });
         },
+        askDelete: function (id) {
+          this.confirmDeleteId = id;
+        },
+        cancelDelete: function () {
+          this.confirmDeleteId = null;
+        },
+        confirmDelete: function (id) {
+          const self = this;
+          DB.delete(DB.STORES.PRESENTATIONS, id).then(function () {
+            return DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', id);
+          }).then(function (slides) {
+            return Promise.all(slides.map(function (s) {
+              return DB.delete(DB.STORES.SLIDES, s.id);
+            }));
+          }).then(function () {
+            self.presentations = self.presentations.filter(function (p) {
+              return p.id !== id;
+            });
+            self.confirmDeleteId = null;
+          }).catch(function (err) {
+            self.confirmDeleteId = null;
+            console.error('Failed to delete presentation:', err);
+          });
+        },
       },
       created: function () {
         const self = this;
@@ -83,9 +108,15 @@ window.DashboardPage = (function () {
                   <h2 class="card-title">{{ p.title }}</h2>
                   <p class="card-meta">{{ p.client || 'No client' }} &middot; {{ formatDate(p.updatedAt) }}</p>
                 </div>
-                <div class="card-actions">
+                <div v-if="confirmDeleteId === p.id" class="card-confirm">
+                  <span class="card-confirm-text">Delete this presentation?</span>
+                  <button class="btn-danger" @click="confirmDelete(p.id)">Delete</button>
+                  <button class="btn-ghost" @click="cancelDelete">Cancel</button>
+                </div>
+                <div v-else class="card-actions">
                   <button class="btn-ghost" @click="goEdit(p.id)">Edit</button>
                   <button class="btn-ghost" @click="goPlay(p.id)">Play</button>
+                  <button class="btn-danger" style="margin-left:auto" @click="askDelete(p.id)">Delete</button>
                 </div>
               </div>
             </div>
