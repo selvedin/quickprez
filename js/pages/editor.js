@@ -611,6 +611,14 @@ window.EditorPage = (function () {
                           <option value="xl">{{ tx.fontSizeXl }}</option>
                         </select>
                       </div>
+                      <div class="form-field">
+                        <label class="form-label">{{ tx.textAlignLabel }}</label>
+                        <div class="align-btns">
+                          <button :class="['align-btn', (!selectedSlide.content.textAlign || selectedSlide.content.textAlign === 'left') ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'left'; saveSlide(selectedSlide)">&#8676;</button>
+                          <button :class="['align-btn', selectedSlide.content.textAlign === 'center' ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'center'; saveSlide(selectedSlide)">&#8652;</button>
+                          <button :class="['align-btn', selectedSlide.content.textAlign === 'right' ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'right'; saveSlide(selectedSlide)">&#8677;</button>
+                        </div>
+                      </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'text-bullets'">
@@ -640,6 +648,14 @@ window.EditorPage = (function () {
                           <option value="lg">{{ tx.fontSizeLg }}</option>
                           <option value="xl">{{ tx.fontSizeXl }}</option>
                         </select>
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">{{ tx.textAlignLabel }}</label>
+                        <div class="align-btns">
+                          <button :class="['align-btn', (!selectedSlide.content.textAlign || selectedSlide.content.textAlign === 'left') ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'left'; saveSlide(selectedSlide)">&#8676;</button>
+                          <button :class="['align-btn', selectedSlide.content.textAlign === 'center' ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'center'; saveSlide(selectedSlide)">&#8652;</button>
+                          <button :class="['align-btn', selectedSlide.content.textAlign === 'right' ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'right'; saveSlide(selectedSlide)">&#8677;</button>
+                        </div>
                       </div>
                     </template>
 
@@ -671,6 +687,14 @@ window.EditorPage = (function () {
                           <option value="lg">{{ tx.fontSizeLg }}</option>
                           <option value="xl">{{ tx.fontSizeXl }}</option>
                         </select>
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">{{ tx.textAlignLabel }}</label>
+                        <div class="align-btns">
+                          <button :class="['align-btn', (!selectedSlide.content.textAlign || selectedSlide.content.textAlign === 'left') ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'left'; saveSlide(selectedSlide)">&#8676;</button>
+                          <button :class="['align-btn', selectedSlide.content.textAlign === 'center' ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'center'; saveSlide(selectedSlide)">&#8652;</button>
+                          <button :class="['align-btn', selectedSlide.content.textAlign === 'right' ? 'align-btn--active' : '']" @click="selectedSlide.content.textAlign = 'right'; saveSlide(selectedSlide)">&#8677;</button>
+                        </div>
                       </div>
                     </template>
 
