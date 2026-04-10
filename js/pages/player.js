@@ -18,6 +18,7 @@ window.PlayerPage = (function () {
         slideHtml: '',
       },
       computed: {
+        tx: function () { return I18n.tx(); },
         currentSlide: function () {
           return this.slides[this.currentIndex] || null;
         },
@@ -170,9 +171,6 @@ window.PlayerPage = (function () {
           if (cont) cont.removeEventListener('mousemove', this._mouseMoveHandler);
         }
         if (this.mouseTimer) clearTimeout(this.mouseTimer);
-      },
-      computed: {
-        tx: function () { return I18n.tx(); },
       },
       template: `
         <div class="player">
