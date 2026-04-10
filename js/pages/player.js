@@ -171,18 +171,21 @@ window.PlayerPage = (function () {
         }
         if (this.mouseTimer) clearTimeout(this.mouseTimer);
       },
+      computed: {
+        tx: function () { return I18n.tx(); },
+      },
       template: `
         <div class="player">
-          <div v-if="loading" class="player-loading">Loading…</div>
+          <div v-if="loading" class="player-loading">{{ tx.playerLoading }}</div>
           <div v-else-if="notFound" class="player-not-found">
-            <p>Presentation not found.</p>
+            <p>{{ tx.playerNotFound }}</p>
           </div>
           <template v-else>
             <div class="player-stage">
               <div class="player-slide-inner" v-html="slideHtml"></div>
             </div>
             <div :class="['player-controls', controlsVisible ? '' : 'player-controls--hidden']">
-              <button class="player-btn" @click="exitPlayer">&#x2715; Exit</button>
+              <button class="player-btn" @click="exitPlayer">{{ tx.exitPlayer }}</button>
               <button class="player-btn" :disabled="currentIndex === 0" @click="goPrev">&#8592;</button>
               <span class="player-counter">{{ currentIndex + 1 }} / {{ slides.length }}</span>
               <button class="player-btn" :disabled="currentIndex === slides.length - 1" @click="goNext">&#8594;</button>

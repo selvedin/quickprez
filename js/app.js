@@ -1,4 +1,6 @@
 DB.open().then(function () {
+  return I18n.loadSavedLang();
+}).then(function () {
   Router.register('#dashboard', DashboardPage);
   Router.register('#editor/:id', EditorPage);
   Router.register('#player/:id', PlayerPage);

@@ -2,6 +2,7 @@ const STORES = {
   PRESENTATIONS: 'presentations',
   SLIDES: 'slides',
   ASSETS: 'assets',
+  SETTINGS: 'settings',
 };
 
 window.DB = (function () {
@@ -9,7 +10,7 @@ window.DB = (function () {
 
   function open() {
     return new Promise(function (resolve, reject) {
-      const request = indexedDB.open('PresentationForge_v1', 1);
+      const request = indexedDB.open('PresentationForge_v1', 2);
 
       request.onupgradeneeded = function (e) {
         const database = e.target.result;
@@ -25,6 +26,10 @@ window.DB = (function () {
 
         if (!database.objectStoreNames.contains(STORES.ASSETS)) {
           database.createObjectStore(STORES.ASSETS, { keyPath: 'id', autoIncrement: true });
+        }
+
+        if (!database.objectStoreNames.contains(STORES.SETTINGS)) {
+          database.createObjectStore(STORES.SETTINGS, { keyPath: 'key' });
         }
       };
 
