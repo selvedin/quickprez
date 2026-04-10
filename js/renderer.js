@@ -1,4 +1,15 @@
 window.Renderer = (function () {
+  const FONT_SIZES = {
+    sm: { coverTitle: '2.8rem',  coverSubtitle: '1.2rem', title: '2.2rem',  bullet: '1.1rem',  body: '1rem'   },
+    md: { coverTitle: '4rem',    coverSubtitle: '1.6rem', title: '3rem',    bullet: '1.4rem',  body: '1.2rem' },
+    lg: { coverTitle: '5.5rem',  coverSubtitle: '2rem',   title: '4rem',    bullet: '1.8rem',  body: '1.45rem' },
+    xl: { coverTitle: '7rem',    coverSubtitle: '2.5rem', title: '5rem',    bullet: '2.2rem',  body: '1.7rem' },
+  };
+
+  function sizeFor(content) {
+    return FONT_SIZES[content.fontSize] || FONT_SIZES['lg'];
+  }
+
   function bgStyle(config) {
     if (!config || !config.background) return '';
     const bg = config.background;
@@ -27,12 +38,13 @@ window.Renderer = (function () {
   }
 
   function renderCover(content, config) {
+    const sz = sizeFor(content);
     return (
       '<div class="slide slide--cover" style="' + bgStyle(config) + '">' +
         '<div class="slide-cover-inner">' +
-          '<h1 class="slide-cover-title" style="' + textStyle(config) + '">' + escape(content.title) + '</h1>' +
+          '<h1 class="slide-cover-title" style="font-size:' + sz.coverTitle + ';' + textStyle(config) + '">' + escape(content.title) + '</h1>' +
           (content.subtitle
-            ? '<p class="slide-cover-subtitle" style="' + accentStyle(config) + '">' + escape(content.subtitle) + '</p>'
+            ? '<p class="slide-cover-subtitle" style="font-size:' + sz.coverSubtitle + ';' + accentStyle(config) + '">' + escape(content.subtitle) + '</p>'
             : '') +
         '</div>' +
       '</div>'
@@ -40,16 +52,17 @@ window.Renderer = (function () {
   }
 
   function renderTextBullets(content, config, visibleCount) {
+    const sz = sizeFor(content);
     const all = content.bullets || [];
     const count = (visibleCount === undefined) ? all.length : visibleCount;
     const bullets = all.map(function (b, i) {
-      const hidden = i >= count ? ' style="visibility:hidden"' : '';
-      return '<li class="slide-bullet"' + hidden + '><span class="slide-bullet-marker" style="' + accentStyle(config) + '">&#9656;</span>' + escape(b) + '</li>';
+      const hidden = i >= count ? ' visibility:hidden;' : '';
+      return '<li class="slide-bullet" style="font-size:' + sz.bullet + ';' + hidden + '"><span class="slide-bullet-marker" style="' + accentStyle(config) + '">&#9656;</span>' + escape(b) + '</li>';
     }).join('');
     return (
       '<div class="slide slide--text-bullets" style="' + bgStyle(config) + '">' +
         '<div class="slide-content">' +
-          '<h2 class="slide-title" style="' + textStyle(config) + '">' + escape(content.title) + '</h2>' +
+          '<h2 class="slide-title" style="font-size:' + sz.title + ';' + textStyle(config) + '">' + escape(content.title) + '</h2>' +
           '<ul class="slide-bullets" style="' + textStyle(config) + '">' + bullets + '</ul>' +
         '</div>' +
       '</div>'
@@ -57,6 +70,7 @@ window.Renderer = (function () {
   }
 
   function renderImageText(content, config) {
+    const sz = sizeFor(content);
     const pos = content.imagePosition === 'right' ? 'row-reverse' : 'row';
     return (
       '<div class="slide slide--image-text" style="' + bgStyle(config) + 'flex-direction:' + pos + ';">' +
@@ -64,8 +78,8 @@ window.Renderer = (function () {
           '<img class="slide-image" src="' + escape(content.imageUrl) + '" alt="" />' +
         '</div>' +
         '<div class="slide-content">' +
-          '<h2 class="slide-title" style="' + textStyle(config) + '">' + escape(content.title) + '</h2>' +
-          '<p class="slide-body" style="' + textStyle(config) + '">' + escape(content.body) + '</p>' +
+          '<h2 class="slide-title" style="font-size:' + sz.title + ';' + textStyle(config) + '">' + escape(content.title) + '</h2>' +
+          '<p class="slide-body" style="font-size:' + sz.body + ';' + textStyle(config) + '">' + escape(content.body) + '</p>' +
         '</div>' +
       '</div>'
     );
