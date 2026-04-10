@@ -25,6 +25,8 @@ window.EditorPage = (function () {
         confirmDeleteSlideId: null,
         dragSrcIndex: null,
         previewScale: 0.5,
+        jsonModalOpen: false,
+        jsonModalContent: '',
       },
       computed: {
         importValid: function () {
@@ -97,6 +99,11 @@ window.EditorPage = (function () {
           const self = this;
           DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', self.presentation.id).then(function (rows) {
             self.slides = rows.slice().sort(function (a, b) { return a.order - b.order; });
+            self.importJson = JSON.stringify(self.slides.map(function (s) {
+              return { type: s.type, content: s.content };
+            }), null, 2);
+            self.importStatus = 'valid';
+            self.importErrors = [];
           }).catch(function (err) {
             showToast('Failed to load slides', 'error');
             console.error(err);
@@ -150,6 +157,23 @@ window.EditorPage = (function () {
           this.importStatus = null;
           this.importErrors = [];
         },
+        openJsonModal: function () {
+          this.jsonModalContent = this.importJson;
+          this.jsonModalOpen = true;
+          const self = this;
+          self.$nextTick(function () {
+            const ta = document.getElementById('json-modal-textarea');
+            if (ta) ta.focus();
+          });
+        },
+        closeJsonModal: function () {
+          this.jsonModalOpen = false;
+        },
+        applyModalJson: function () {
+          this.importJson = this.jsonModalContent;
+          this.jsonModalOpen = false;
+          this.onImportInput();
+        },
         doImport: function () {
           const self = this;
           if (!self.importValid) return;
@@ -169,7 +193,6 @@ window.EditorPage = (function () {
             }));
           }).then(function () {
             self.importing = false;
-            self.clearImport();
             self.loadSlides();
             showToast('Slides imported successfully', 'success');
           }).catch(function (err) {
@@ -280,8 +303,12 @@ window.EditorPage = (function () {
           }
           return DB.getByIndex(DB.STORES.SLIDES, 'by_presentation', id);
         }).then(function (rows) {
-          if (rows) {
+          if (rows && rows.length > 0) {
             self.slides = rows.slice().sort(function (a, b) { return a.order - b.order; });
+            self.importJson = JSON.stringify(self.slides.map(function (s) {
+              return { type: s.type, content: s.content };
+            }), null, 2);
+            self.importStatus = 'valid';
           }
           self.loading = false;
         }).catch(function (err) {
@@ -409,6 +436,7 @@ window.EditorPage = (function () {
                     <button class="btn-primary" :disabled="!importValid || importing" @click="doImport">
                       {{ importing ? 'Importing…' : 'Import slides' }}
                     </button>
+                    <button class="btn-ghost" @click="openJsonModal">&#9998; Edit</button>
                     <button class="btn-ghost" v-if="importJson" @click="clearImport">Clear</button>
                   </div>
                 </div>
@@ -474,6 +502,25 @@ window.EditorPage = (function () {
               </main>
             </div>
           </template>
+
+          <div v-if="jsonModalOpen" class="json-modal-overlay" @click.self="closeJsonModal">
+            <div class="json-modal">
+              <div class="json-modal-header">
+                <span class="json-modal-title">Edit JSON</span>
+                <button class="btn-ghost json-modal-close" @click="closeJsonModal">&#x2715;</button>
+              </div>
+              <textarea
+                id="json-modal-textarea"
+                class="json-modal-textarea"
+                v-model="jsonModalContent"
+                spellcheck="false"
+              ></textarea>
+              <div class="json-modal-footer">
+                <button class="btn-ghost" @click="closeJsonModal">Cancel</button>
+                <button class="btn-primary" @click="applyModalJson">Apply</button>
+              </div>
+            </div>
+          </div>
         </div>
       `,
     });
