@@ -602,6 +602,15 @@ window.EditorPage = (function () {
                         <label class="form-label">{{ tx.subtitleLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.subtitle" @input="saveSlide(selectedSlide)" />
                       </div>
+                      <div class="form-field">
+                        <label class="form-label">{{ tx.fontSizeLabel }}</label>
+                        <select class="form-select" :value="selectedSlide.content.fontSize || 'lg'" @change="selectedSlide.content.fontSize = $event.target.value; saveSlide(selectedSlide)">
+                          <option value="sm">{{ tx.fontSizeSm }}</option>
+                          <option value="md">{{ tx.fontSizeMd }}</option>
+                          <option value="lg">{{ tx.fontSizeLg }}</option>
+                          <option value="xl">{{ tx.fontSizeXl }}</option>
+                        </select>
+                      </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'text-bullets'">
@@ -623,6 +632,15 @@ window.EditorPage = (function () {
                           <span>{{ tx.bulletRevealLabel }}</span>
                         </label>
                       </div>
+                      <div class="form-field">
+                        <label class="form-label">{{ tx.fontSizeLabel }}</label>
+                        <select class="form-select" :value="selectedSlide.content.fontSize || 'lg'" @change="selectedSlide.content.fontSize = $event.target.value; saveSlide(selectedSlide)">
+                          <option value="sm">{{ tx.fontSizeSm }}</option>
+                          <option value="md">{{ tx.fontSizeMd }}</option>
+                          <option value="lg">{{ tx.fontSizeLg }}</option>
+                          <option value="xl">{{ tx.fontSizeXl }}</option>
+                        </select>
+                      </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'image-text'">
@@ -643,6 +661,15 @@ window.EditorPage = (function () {
                         <select class="form-select" v-model="selectedSlide.content.imagePosition" @change="saveSlide(selectedSlide)">
                           <option value="left">{{ tx.left }}</option>
                           <option value="right">{{ tx.right }}</option>
+                        </select>
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">{{ tx.fontSizeLabel }}</label>
+                        <select class="form-select" :value="selectedSlide.content.fontSize || 'lg'" @change="selectedSlide.content.fontSize = $event.target.value; saveSlide(selectedSlide)">
+                          <option value="sm">{{ tx.fontSizeSm }}</option>
+                          <option value="md">{{ tx.fontSizeMd }}</option>
+                          <option value="lg">{{ tx.fontSizeLg }}</option>
+                          <option value="xl">{{ tx.fontSizeXl }}</option>
                         </select>
                       </div>
                     </template>
