@@ -30,6 +30,22 @@ window.EditorPage = (function () {
       },
       computed: {
         tx: function () { return I18n.tx(); },
+        themes: function () {
+          return [
+            { name: 'Obsidian',    bgType: 'color',    bg: '#0d0d0d',                                                          font: '#f0f0f0', accent: '#7c3aed' },
+            { name: 'Void Blue',   bgType: 'color',    bg: '#050a1a',                                                          font: '#e8f0ff', accent: '#3b82f6' },
+            { name: 'Cyber Coral', bgType: 'gradient', bg: 'linear-gradient(135deg, #0f0f1a, #1a0a2e)',                        font: '#ffffff', accent: '#ff6b6b' },
+            { name: 'Aurora',      bgType: 'gradient', bg: 'linear-gradient(135deg, #0a1628, #0d2b45)',                        font: '#e0f7fa', accent: '#00e5ff' },
+            { name: 'Solar',       bgType: 'gradient', bg: 'linear-gradient(135deg, #1a0a00, #2d1200)',                        font: '#fff8f0', accent: '#f97316' },
+            { name: 'Sakura',      bgType: 'gradient', bg: 'linear-gradient(135deg, #1a0a18, #2d0a2d)',                        font: '#fdf0ff', accent: '#f472b6' },
+            { name: 'Forest',      bgType: 'gradient', bg: 'linear-gradient(135deg, #030d07, #071a0e)',                        font: '#f0fff4', accent: '#4ade80' },
+            { name: 'Slate',       bgType: 'color',    bg: '#0f172a',                                                          font: '#f1f5f9', accent: '#38bdf8' },
+            { name: 'Warm Sand',   bgType: 'color',    bg: '#1c1410',                                                          font: '#fef3e2', accent: '#d97706' },
+            { name: 'Crimson',     bgType: 'gradient', bg: 'linear-gradient(135deg, #1a0008, #2d0012)',                        font: '#fff0f3', accent: '#fb7185' },
+            { name: 'Zinc',        bgType: 'color',    bg: '#18181b',                                                          font: '#fafafa', accent: '#a1a1aa' },
+            { name: 'Emerald',     bgType: 'gradient', bg: 'linear-gradient(135deg, #022c22, #064e3b)',                        font: '#ecfdf5', accent: '#34d399' },
+          ];
+        },
         importValid: function () {
           return this.importStatus === 'valid';
         },
@@ -55,6 +71,21 @@ window.EditorPage = (function () {
         },
       },
       methods: {
+        applyTheme: function (theme) {
+          this.presentation.config.background = { type: theme.bgType, value: theme.bg };
+          this.presentation.config.fontColor = theme.font;
+          this.presentation.config.accentColor = theme.accent;
+          this.bgTab = theme.bgType;
+          if (theme.bgType === 'gradient') {
+            const match = theme.bg.match(/linear-gradient\(([^,]+),\s*(#[0-9a-fA-F]{3,8}),\s*(#[0-9a-fA-F]{3,8})\)/);
+            if (match) {
+              this.gradientDirection = match[1].trim();
+              this.gradientColor1 = match[2].trim();
+              this.gradientColor2 = match[3].trim();
+            }
+          }
+          this.save();
+        },
         goBack: function () {
           Router.navigate('#dashboard');
         },
@@ -412,6 +443,22 @@ window.EditorPage = (function () {
 
                 <div class="editor-section">
                   <p class="editor-section-label">{{ tx.appearanceSection }}</p>
+                  <div class="form-field">
+                    <label class="form-label">{{ tx.themesLabel }}</label>
+                    <div class="theme-grid">
+                      <button
+                        v-for="theme in themes"
+                        :key="theme.name"
+                        class="theme-swatch"
+                        :title="theme.name"
+                        :style="{ background: theme.bg }"
+                        @click="applyTheme(theme)"
+                      >
+                        <span class="theme-swatch-accent" :style="{ background: theme.accent }"></span>
+                        <span class="theme-swatch-name" :style="{ color: theme.font }">{{ theme.name }}</span>
+                      </button>
+                    </div>
+                  </div>
                   <div class="form-field">
                     <label class="form-label">{{ tx.backgroundLabel }}</label>
                     <div class="segmented">

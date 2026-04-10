@@ -446,6 +446,53 @@ a {
   color: var(--color-text-secondary);
 }
 
+/* Color themes */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.theme-swatch {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  height: 52px;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  align-items: flex-end;
+}
+
+.theme-swatch:hover {
+  border-color: #fff;
+  transform: scale(1.04);
+}
+
+.theme-swatch-accent {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.theme-swatch-name {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 2px var(--space-2) var(--space-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+}
+
 /* Gradient builder */
 .gradient-builder {
   display: flex;
