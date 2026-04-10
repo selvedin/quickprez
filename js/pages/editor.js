@@ -157,6 +157,38 @@ window.EditorPage = (function () {
           this.importStatus = null;
           this.importErrors = [];
         },
+        tryFixJson: function () {
+          let text = this.importJson;
+
+          // strip markdown code fences: ```json ... ``` or ``` ... ```
+          text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
+
+          // trim whitespace
+          text = text.trim();
+
+          // remove trailing commas before ] or }
+          text = text.replace(/,(\s*[}\]])/g, '$1');
+
+          // strip literal newlines/tabs/control chars inside quoted strings
+          text = text.replace(/"((?:[^"\\]|\\.)*)"/g, function (match) {
+            return match.replace(/[\n\r\t]/g, ' ').replace(/ {2,}/g, ' ');
+          });
+
+          // if it doesn't start with [ try to extract first [...] block
+          if (!text.startsWith('[')) {
+            const match = text.match(/\[[\s\S]*\]/);
+            if (match) text = match[0];
+          }
+
+          this.importJson = text;
+          this.onImportInput();
+
+          if (this.importStatus === 'valid') {
+            showToast('JSON fixed successfully', 'success');
+          } else {
+            showToast('Could not auto-fix — try the Edit modal', 'error');
+          }
+        },
         openJsonModal: function () {
           this.jsonModalContent = this.importJson;
           this.jsonModalOpen = true;
@@ -464,6 +496,7 @@ window.EditorPage = (function () {
                     <button class="btn-primary" :disabled="!importValid || importing" @click="doImport">
                       {{ importing ? 'Importing…' : 'Import slides' }}
                     </button>
+                    <button class="btn-ghost" v-if="importStatus === 'invalid'" @click="tryFixJson">&#10227; Fix</button>
                     <button class="btn-ghost" @click="openJsonModal">&#9998; Edit</button>
                     <button class="btn-ghost" v-if="importJson" @click="clearImport">Clear</button>
                   </div>
