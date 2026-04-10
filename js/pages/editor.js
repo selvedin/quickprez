@@ -238,6 +238,34 @@ window.EditorPage = (function () {
         onDragEnd: function () {
           this.dragSrcIndex = null;
         },
+        saveSlide: function (slide) {
+          const self = this;
+          DB.put(DB.STORES.SLIDES, slide).then(function () {
+            self.syncImportJson();
+          }).catch(function (err) {
+            showToast('Failed to save slide', 'error');
+            console.error(err);
+          });
+        },
+        syncImportJson: function () {
+          this.importJson = JSON.stringify(this.slides.map(function (s) {
+            return { type: s.type, content: s.content };
+          }), null, 2);
+          this.importStatus = 'valid';
+          this.importErrors = [];
+        },
+        updateBullet: function (slide, index, value) {
+          Vue.set(slide.content.bullets, index, value);
+          this.saveSlide(slide);
+        },
+        addBullet: function (slide) {
+          slide.content.bullets.push('');
+          this.saveSlide(slide);
+        },
+        removeBullet: function (slide, index) {
+          slide.content.bullets.splice(index, 1);
+          this.saveSlide(slide);
+        },
         exportSlides: function () {
           const data = this.slides.map(function (s) {
             return { type: s.type, content: s.content };
@@ -486,6 +514,69 @@ window.EditorPage = (function () {
                       </div>
                     </div>
                   </div>
+                  <div v-if="selectedSlide" class="slide-content-editor">
+                    <p class="slide-content-editor-label">{{ typeLabel(selectedSlide.type) }}</p>
+
+                    <template v-if="selectedSlide.type === 'cover'">
+                      <div class="form-field">
+                        <label class="form-label">Title</label>
+                        <input class="form-input" v-model="selectedSlide.content.title" @input="saveSlide(selectedSlide)" />
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Subtitle</label>
+                        <input class="form-input" v-model="selectedSlide.content.subtitle" @input="saveSlide(selectedSlide)" />
+                      </div>
+                    </template>
+
+                    <template v-if="selectedSlide.type === 'text-bullets'">
+                      <div class="form-field">
+                        <label class="form-label">Title</label>
+                        <input class="form-input" v-model="selectedSlide.content.title" @input="saveSlide(selectedSlide)" />
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Bullets</label>
+                        <div v-for="(bullet, bi) in selectedSlide.content.bullets" :key="bi" class="bullet-row">
+                          <input class="form-input" :value="bullet" @input="updateBullet(selectedSlide, bi, $event.target.value)" />
+                          <button class="btn-ghost bullet-remove" @click="removeBullet(selectedSlide, bi)">&#x2715;</button>
+                        </div>
+                        <button class="btn-ghost bullet-add" @click="addBullet(selectedSlide)">+ Add bullet</button>
+                      </div>
+                    </template>
+
+                    <template v-if="selectedSlide.type === 'image-text'">
+                      <div class="form-field">
+                        <label class="form-label">Title</label>
+                        <input class="form-input" v-model="selectedSlide.content.title" @input="saveSlide(selectedSlide)" />
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Body text</label>
+                        <textarea class="form-textarea" rows="4" v-model="selectedSlide.content.body" @input="saveSlide(selectedSlide)"></textarea>
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Image URL</label>
+                        <input class="form-input" v-model="selectedSlide.content.imageUrl" @input="saveSlide(selectedSlide)" />
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Image position</label>
+                        <select class="form-select" v-model="selectedSlide.content.imagePosition" @change="saveSlide(selectedSlide)">
+                          <option value="left">Left</option>
+                          <option value="right">Right</option>
+                        </select>
+                      </div>
+                    </template>
+
+                    <template v-if="selectedSlide.type === 'fullscreen-image'">
+                      <div class="form-field">
+                        <label class="form-label">Image URL</label>
+                        <input class="form-input" v-model="selectedSlide.content.imageUrl" @input="saveSlide(selectedSlide)" />
+                      </div>
+                      <div class="form-field">
+                        <label class="form-label">Caption</label>
+                        <input class="form-input" v-model="selectedSlide.content.caption" @input="saveSlide(selectedSlide)" />
+                      </div>
+                    </template>
+                  </div>
+
                   <div class="slide-preview-panel">
                     <div class="slide-preview-frame" ref="previewFrame">
                       <div v-if="selectedSlide"
