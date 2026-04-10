@@ -570,6 +570,12 @@ window.EditorPage = (function () {
                         </div>
                         <button class="btn-ghost bullet-add" @click="addBullet(selectedSlide)">{{ tx.addBullet }}</button>
                       </div>
+                      <div class="form-field">
+                        <label class="reveal-toggle">
+                          <input type="checkbox" :checked="!!selectedSlide.content.bulletReveal" @change="selectedSlide.content.bulletReveal = $event.target.checked; saveSlide(selectedSlide)" />
+                          <span>{{ tx.bulletRevealLabel }}</span>
+                        </label>
+                      </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'image-text'">
