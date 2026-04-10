@@ -39,9 +39,12 @@ window.Renderer = (function () {
     );
   }
 
-  function renderTextBullets(content, config) {
-    const bullets = (content.bullets || []).map(function (b) {
-      return '<li class="slide-bullet"><span class="slide-bullet-marker" style="' + accentStyle(config) + '">&#9656;</span>' + escape(b) + '</li>';
+  function renderTextBullets(content, config, visibleCount) {
+    const all = content.bullets || [];
+    const count = (visibleCount === undefined) ? all.length : visibleCount;
+    const bullets = all.map(function (b, i) {
+      const hidden = i >= count ? ' style="visibility:hidden"' : '';
+      return '<li class="slide-bullet"' + hidden + '><span class="slide-bullet-marker" style="' + accentStyle(config) + '">&#9656;</span>' + escape(b) + '</li>';
     }).join('');
     return (
       '<div class="slide slide--text-bullets" style="' + bgStyle(config) + '">' +
@@ -79,11 +82,11 @@ window.Renderer = (function () {
     );
   }
 
-  function renderSlide(slide, config) {
+  function renderSlide(slide, config, visibleCount) {
     if (!slide) return '<div class="slide"></div>';
     const c = slide.content || {};
     if (slide.type === 'cover') return renderCover(c, config);
-    if (slide.type === 'text-bullets') return renderTextBullets(c, config);
+    if (slide.type === 'text-bullets') return renderTextBullets(c, config, visibleCount);
     if (slide.type === 'image-text') return renderImageText(c, config);
     if (slide.type === 'fullscreen-image') return renderFullscreenImage(c, config);
     return '<div class="slide"><p>Unknown slide type: ' + escape(slide.type) + '</p></div>';

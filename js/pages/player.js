@@ -16,6 +16,7 @@ window.PlayerPage = (function () {
         mouseTimer: null,
         transitionActive: false,
         slideHtml: '',
+        visibleBullets: null,
       },
       computed: {
         tx: function () { return I18n.tx(); },
@@ -28,7 +29,31 @@ window.PlayerPage = (function () {
         },
       },
       methods: {
+        renderCurrent: function (vb) {
+          const slide = this.currentSlide;
+          const count = (vb === undefined) ? this.visibleBullets : vb;
+          this.slideHtml = Renderer.renderSlide(slide, this.presentation.config, count === null ? undefined : count);
+        },
+        initSlide: function (index) {
+          this.currentIndex = index;
+          const slide = this.slides[index];
+          if (slide && slide.type === 'text-bullets' && slide.content.bulletReveal) {
+            this.visibleBullets = 0;
+          } else {
+            this.visibleBullets = null;
+          }
+          this.renderCurrent();
+        },
         goNext: function () {
+          const slide = this.currentSlide;
+          if (slide && slide.type === 'text-bullets' && slide.content.bulletReveal) {
+            const total = (slide.content.bullets || []).length;
+            if (this.visibleBullets < total) {
+              this.visibleBullets++;
+              this.renderCurrent();
+              return;
+            }
+          }
           if (this.currentIndex < this.slides.length - 1) {
             this.navigateTo(this.currentIndex + 1);
           }
@@ -48,8 +73,7 @@ window.PlayerPage = (function () {
             const el = document.querySelector('.player-slide-inner');
             if (el) el.style.opacity = '0';
             setTimeout(function () {
-              self.currentIndex = index;
-              self.slideHtml = Renderer.renderSlide(self.currentSlide, self.presentation.config);
+              self.initSlide(index);
               self.$nextTick(function () {
                 const next = document.querySelector('.player-slide-inner');
                 if (next) {
@@ -72,8 +96,7 @@ window.PlayerPage = (function () {
               el.style.transform = goingForward ? 'translateX(-100%)' : 'translateX(100%)';
             }
             setTimeout(function () {
-              self.currentIndex = index;
-              self.slideHtml = Renderer.renderSlide(self.currentSlide, self.presentation.config);
+              self.initSlide(index);
               self.$nextTick(function () {
                 const next = document.querySelector('.player-slide-inner');
                 if (next) {
@@ -88,8 +111,7 @@ window.PlayerPage = (function () {
               });
             }, 300);
           } else {
-            self.currentIndex = index;
-            self.slideHtml = Renderer.renderSlide(self.currentSlide, self.presentation.config);
+            self.initSlide(index);
           }
         },
         exitPlayer: function () {
@@ -123,7 +145,7 @@ window.PlayerPage = (function () {
         }).then(function (rows) {
           if (rows) {
             self.slides = rows.slice().sort(function (a, b) { return a.order - b.order; });
-            self.slideHtml = Renderer.renderSlide(self.currentSlide, self.presentation.config);
+            self.initSlide(0);
           }
           self.loading = false;
         }).catch(function (err) {
