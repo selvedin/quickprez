@@ -29,6 +29,7 @@ window.EditorPage = (function () {
         jsonModalContent: '',
       },
       computed: {
+        tx: function () { return I18n.tx(); },
         importValid: function () {
           return this.importStatus === 'valid';
         },
@@ -62,14 +63,14 @@ window.EditorPage = (function () {
         },
         save: function () {
           const self = this;
-          self.saveStatus = 'Saving…';
+          self.saveStatus = I18n.t('saving');
           self.presentation.updatedAt = new Date().toISOString();
           DB.put(DB.STORES.PRESENTATIONS, self.presentation).then(function () {
-            self.saveStatus = 'Saved';
+            self.saveStatus = I18n.t('saved');
             if (self.saveTimer) clearTimeout(self.saveTimer);
             self.saveTimer = setTimeout(function () { self.saveStatus = ''; }, 1500);
           }).catch(function (err) {
-            self.saveStatus = 'Error saving';
+            self.saveStatus = I18n.t('errorSaving');
             showToast('Auto-save failed', 'error');
             console.error(err);
           });
@@ -234,13 +235,8 @@ window.EditorPage = (function () {
           });
         },
         typeLabel: function (type) {
-          const labels = {
-            'cover': 'Cover',
-            'text-bullets': 'Bullets',
-            'image-text': 'Image + Text',
-            'fullscreen-image': 'Full Image',
-          };
-          return labels[type] || type;
+          const types = I18n.tx().slideTypes;
+          return types[type] || type;
         },
         onDragStart: function (e, index) {
           this.dragSrcIndex = index;
@@ -385,42 +381,42 @@ window.EditorPage = (function () {
       template: `
         <div class="editor" v-if="!loading">
           <div v-if="notFound" class="editor-not-found">
-            <p>Presentation not found.</p>
-            <button class="btn-primary" @click="goBack">Back to Dashboard</button>
+            <p>{{ tx.notFound }}</p>
+            <button class="btn-primary" @click="goBack">{{ tx.backToDashboardBtn }}</button>
           </div>
           <template v-else>
             <header class="editor-header">
-              <button class="btn-ghost editor-back" @click="goBack">&#8592; Dashboard</button>
+              <button class="btn-ghost editor-back" @click="goBack">{{ tx.backToDashboard }}</button>
               <span class="editor-header-title">{{ presentation.title }}</span>
               <span class="editor-save-status">{{ saveStatus }}</span>
-              <button class="btn-primary" @click="goPlay">&#9654; Play</button>
+              <button class="btn-primary" @click="goPlay">&#9654; {{ tx.play }}</button>
             </header>
             <div class="editor-body">
               <aside class="editor-panel">
 
                 <div class="editor-section">
-                  <p class="editor-section-label">Meta</p>
+                  <p class="editor-section-label">{{ tx.metaSection }}</p>
                   <div class="form-field">
-                    <label class="form-label">Title</label>
+                    <label class="form-label">{{ tx.titleLabel }}</label>
                     <input class="form-input" type="text" v-model="presentation.title" @input="onFieldChange" />
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Subtitle</label>
+                    <label class="form-label">{{ tx.subtitleLabel }}</label>
                     <input class="form-input" type="text" v-model="presentation.subtitle" @input="onFieldChange" />
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Client</label>
+                    <label class="form-label">{{ tx.clientLabel }}</label>
                     <input class="form-input" type="text" v-model="presentation.client" @input="onFieldChange" />
                   </div>
                 </div>
 
                 <div class="editor-section">
-                  <p class="editor-section-label">Appearance</p>
+                  <p class="editor-section-label">{{ tx.appearanceSection }}</p>
                   <div class="form-field">
-                    <label class="form-label">Background</label>
+                    <label class="form-label">{{ tx.backgroundLabel }}</label>
                     <div class="segmented">
-                      <button :class="['seg-btn', bgTab === 'color' ? 'seg-btn--active' : '']" @click="setBgTab('color')">Color</button>
-                      <button :class="['seg-btn', bgTab === 'gradient' ? 'seg-btn--active' : '']" @click="setBgTab('gradient')">Gradient</button>
+                      <button :class="['seg-btn', bgTab === 'color' ? 'seg-btn--active' : '']" @click="setBgTab('color')">{{ tx.colorTab }}</button>
+                      <button :class="['seg-btn', bgTab === 'gradient' ? 'seg-btn--active' : '']" @click="setBgTab('gradient')">{{ tx.gradientTab }}</button>
                     </div>
                     <div v-if="bgTab === 'color'" class="form-color-row">
                       <input type="color" class="form-color" :value="presentation.config.background.value" @input="onBgColorChange" />
@@ -439,52 +435,52 @@ window.EditorPage = (function () {
                         </div>
                       </div>
                       <div class="form-field" style="margin-top:0">
-                        <label class="form-label">Direction</label>
+                        <label class="form-label">{{ tx.directionLabel }}</label>
                         <select class="form-select" v-model="gradientDirection" @change="onGradientChange">
-                          <option value="to right">Left → Right</option>
-                          <option value="to bottom">Top → Bottom</option>
-                          <option value="135deg">Diagonal ↘</option>
-                          <option value="45deg">Diagonal ↗</option>
-                          <option value="to bottom right">Top-left → Bottom-right</option>
+                          <option value="to right">{{ tx.directions.toRight }}</option>
+                          <option value="to bottom">{{ tx.directions.toBottom }}</option>
+                          <option value="135deg">{{ tx.directions.diagonal135 }}</option>
+                          <option value="45deg">{{ tx.directions.diagonal45 }}</option>
+                          <option value="to bottom right">{{ tx.directions.toBottomRight }}</option>
                         </select>
                       </div>
                     </div>
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Font color</label>
+                    <label class="form-label">{{ tx.fontColorLabel }}</label>
                     <div class="form-color-row">
                       <input type="color" class="form-color" v-model="presentation.config.fontColor" @input="onFieldChange" />
                       <span class="form-color-label">{{ presentation.config.fontColor }}</span>
                     </div>
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Accent color</label>
+                    <label class="form-label">{{ tx.accentColorLabel }}</label>
                     <div class="form-color-row">
                       <input type="color" class="form-color" v-model="presentation.config.accentColor" @input="onFieldChange" />
                       <span class="form-color-label">{{ presentation.config.accentColor }}</span>
                     </div>
                   </div>
                   <div class="form-field">
-                    <label class="form-label">Transition</label>
+                    <label class="form-label">{{ tx.transitionLabel }}</label>
                     <select class="form-select" v-model="presentation.config.transition" @change="onFieldChange">
-                      <option value="fade">Fade</option>
-                      <option value="slide">Slide</option>
-                      <option value="none">None</option>
+                      <option value="fade">{{ tx.transitions.fade }}</option>
+                      <option value="slide">{{ tx.transitions.slide }}</option>
+                      <option value="none">{{ tx.transitions.none }}</option>
                     </select>
                   </div>
                 </div>
 
                 <div class="editor-section">
-                  <p class="editor-section-label">Import JSON</p>
+                  <p class="editor-section-label">{{ tx.importSection }}</p>
                   <textarea
                     class="form-textarea"
-                    placeholder="Paste slide JSON array here…"
+                    :placeholder="tx.importPlaceholder"
                     v-model="importJson"
                     @input="onImportInput"
                     rows="8"
                   ></textarea>
                   <div v-if="importStatus === 'valid'" class="import-status import-status--valid">
-                    &#10003; Valid — {{ JSON.parse(importJson).length }} slide(s) ready
+                    {{ tx.importValid.replace('{n}', JSON.parse(importJson).length) }}
                   </div>
                   <div v-if="importErrors.length > 0" class="import-error-list">
                     <div v-for="(e, i) in importErrors" :key="i" class="import-error-item">
@@ -494,22 +490,22 @@ window.EditorPage = (function () {
                   </div>
                   <div class="import-actions">
                     <button class="btn-primary" :disabled="!importValid || importing" @click="doImport">
-                      {{ importing ? 'Importing…' : 'Import slides' }}
+                      {{ importing ? tx.importing : tx.importBtn }}
                     </button>
-                    <button class="btn-ghost" v-if="importStatus === 'invalid'" @click="tryFixJson">&#10227; Fix</button>
-                    <button class="btn-ghost" @click="openJsonModal">&#9998; Edit</button>
-                    <button class="btn-ghost" v-if="importJson" @click="clearImport">Clear</button>
+                    <button class="btn-ghost" v-if="importStatus === 'invalid'" @click="tryFixJson">{{ tx.fixBtn }}</button>
+                    <button class="btn-ghost" @click="openJsonModal">{{ tx.editBtn }}</button>
+                    <button class="btn-ghost" v-if="importJson" @click="clearImport">{{ tx.clearBtn }}</button>
                   </div>
                 </div>
 
                 <div class="editor-section">
-                  <p class="editor-section-label">Export</p>
+                  <p class="editor-section-label">{{ tx.exportSection }}</p>
                   <div class="export-actions">
                     <button class="btn-ghost export-btn" :disabled="slides.length === 0" @click="exportSlides">
-                      &#8659; Export slides JSON
+                      {{ tx.exportSlides }}
                     </button>
                     <button class="btn-ghost export-btn" @click="downloadTemplate">
-                      &#8659; Download template
+                      {{ tx.downloadTemplate }}
                     </button>
                   </div>
                 </div>
@@ -518,8 +514,8 @@ window.EditorPage = (function () {
 
               <main class="editor-workspace">
                 <div v-if="slides.length === 0" class="slide-list-empty">
-                  <p>No slides yet.</p>
-                  <p class="editor-placeholder-text">Import a JSON array using the panel on the left.</p>
+                  <p>{{ tx.noSlides }}</p>
+                  <p class="editor-placeholder-text">{{ tx.importHint }}</p>
                 </div>
                 <template v-else>
                   <div class="slide-thumbs">
@@ -540,8 +536,8 @@ window.EditorPage = (function () {
                       <span class="slide-row-title">{{ slide.content.title || slide.content.imageUrl || '—' }}</span>
                       <div class="slide-row-actions" @click.stop>
                         <template v-if="confirmDeleteSlideId === slide.id">
-                          <button class="btn-danger" @click="confirmDeleteSlide(slide.id)">Delete</button>
-                          <button class="btn-ghost" @click="cancelDeleteSlide">Cancel</button>
+                          <button class="btn-danger" @click="confirmDeleteSlide(slide.id)">{{ tx.delete }}</button>
+                          <button class="btn-ghost" @click="cancelDeleteSlide">{{ tx.cancel }}</button>
                         </template>
                         <button v-else class="btn-ghost slide-row-delete" @click="askDeleteSlide(slide.id)">&#x2715;</button>
                       </div>
@@ -552,59 +548,59 @@ window.EditorPage = (function () {
 
                     <template v-if="selectedSlide.type === 'cover'">
                       <div class="form-field">
-                        <label class="form-label">Title</label>
+                        <label class="form-label">{{ tx.titleLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.title" @input="saveSlide(selectedSlide)" />
                       </div>
                       <div class="form-field">
-                        <label class="form-label">Subtitle</label>
+                        <label class="form-label">{{ tx.subtitleLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.subtitle" @input="saveSlide(selectedSlide)" />
                       </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'text-bullets'">
                       <div class="form-field">
-                        <label class="form-label">Title</label>
+                        <label class="form-label">{{ tx.titleLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.title" @input="saveSlide(selectedSlide)" />
                       </div>
                       <div class="form-field">
-                        <label class="form-label">Bullets</label>
+                        <label class="form-label">{{ tx.bulletsLabel }}</label>
                         <div v-for="(bullet, bi) in selectedSlide.content.bullets" :key="bi" class="bullet-row">
                           <input class="form-input" :value="bullet" @input="updateBullet(selectedSlide, bi, $event.target.value)" />
                           <button class="btn-ghost bullet-remove" @click="removeBullet(selectedSlide, bi)">&#x2715;</button>
                         </div>
-                        <button class="btn-ghost bullet-add" @click="addBullet(selectedSlide)">+ Add bullet</button>
+                        <button class="btn-ghost bullet-add" @click="addBullet(selectedSlide)">{{ tx.addBullet }}</button>
                       </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'image-text'">
                       <div class="form-field">
-                        <label class="form-label">Title</label>
+                        <label class="form-label">{{ tx.titleLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.title" @input="saveSlide(selectedSlide)" />
                       </div>
                       <div class="form-field">
-                        <label class="form-label">Body text</label>
+                        <label class="form-label">{{ tx.bodyTextLabel }}</label>
                         <textarea class="form-textarea" rows="4" v-model="selectedSlide.content.body" @input="saveSlide(selectedSlide)"></textarea>
                       </div>
                       <div class="form-field">
-                        <label class="form-label">Image URL</label>
+                        <label class="form-label">{{ tx.imageUrlLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.imageUrl" @input="saveSlide(selectedSlide)" />
                       </div>
                       <div class="form-field">
-                        <label class="form-label">Image position</label>
+                        <label class="form-label">{{ tx.imagePositionLabel }}</label>
                         <select class="form-select" v-model="selectedSlide.content.imagePosition" @change="saveSlide(selectedSlide)">
-                          <option value="left">Left</option>
-                          <option value="right">Right</option>
+                          <option value="left">{{ tx.left }}</option>
+                          <option value="right">{{ tx.right }}</option>
                         </select>
                       </div>
                     </template>
 
                     <template v-if="selectedSlide.type === 'fullscreen-image'">
                       <div class="form-field">
-                        <label class="form-label">Image URL</label>
+                        <label class="form-label">{{ tx.imageUrlLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.imageUrl" @input="saveSlide(selectedSlide)" />
                       </div>
                       <div class="form-field">
-                        <label class="form-label">Caption</label>
+                        <label class="form-label">{{ tx.captionLabel }}</label>
                         <input class="form-input" v-model="selectedSlide.content.caption" @input="saveSlide(selectedSlide)" />
                       </div>
                     </template>
@@ -618,7 +614,7 @@ window.EditorPage = (function () {
                            v-html="renderedSlide">
                       </div>
                       <div v-else class="slide-preview-empty">
-                        <p>Select a slide to preview</p>
+                        <p>{{ tx.selectSlideHint }}</p>
                       </div>
                     </div>
                   </div>
@@ -630,7 +626,7 @@ window.EditorPage = (function () {
           <div v-if="jsonModalOpen" class="json-modal-overlay" @click.self="closeJsonModal">
             <div class="json-modal">
               <div class="json-modal-header">
-                <span class="json-modal-title">Edit JSON</span>
+                <span class="json-modal-title">{{ tx.editJsonTitle }}</span>
                 <button class="btn-ghost json-modal-close" @click="closeJsonModal">&#x2715;</button>
               </div>
               <textarea
@@ -640,8 +636,8 @@ window.EditorPage = (function () {
                 spellcheck="false"
               ></textarea>
               <div class="json-modal-footer">
-                <button class="btn-ghost" @click="closeJsonModal">Cancel</button>
-                <button class="btn-primary" @click="applyModalJson">Apply</button>
+                <button class="btn-ghost" @click="closeJsonModal">{{ tx.cancel }}</button>
+                <button class="btn-primary" @click="applyModalJson">{{ tx.applyBtn }}</button>
               </div>
             </div>
           </div>
