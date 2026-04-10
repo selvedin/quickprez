@@ -143,6 +143,68 @@ a {
   letter-spacing: 0.02em;
 }
 
+.dashboard-header-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* Prompt modal */
+.prompt-modal {
+  max-width: 960px;
+}
+
+.prompt-modal-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+.prompt-fields {
+  width: 300px;
+  flex-shrink: 0;
+  padding: var(--space-5);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow-y: auto;
+}
+
+.prompt-fields-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.prompt-fields-row .form-field {
+  flex: 1;
+}
+
+.prompt-output-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+  gap: var(--space-2);
+  overflow: hidden;
+}
+
+.prompt-output {
+  flex: 1;
+  resize: none;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  overflow-y: auto;
+}
+
 .dashboard-main {
   flex: 1;
   padding: var(--space-6);
@@ -1130,6 +1192,21 @@ a {
 
   .slide-content-editor {
     width: 240px;
+  }
+
+  .prompt-modal-body {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .prompt-fields {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .prompt-output-wrap {
+    min-height: 200px;
   }
 }
 
